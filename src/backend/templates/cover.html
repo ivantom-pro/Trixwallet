@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+
+{% block styles %}
+<style>
+  body{
+    width:'100vw';
+    max-width:'100vw';
+  }
+
+  .cover-container{
+    height:'100vh';
+    width:'100vw';
+    display:'flex';
+    flex:1;
+  }
+</style>
+{% endblock styles %}
+
+
+{% block content %}
+
+<main class="cover-container">
+  {% include 'navbar.html' %}
+  
+</main>
+
+{% endblock content %}
+
+{% block script %}
+
+{% endblock script %}

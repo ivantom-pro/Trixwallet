@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+
+  # Redis
+  redis:
+    image: redis:7.0.6-alpine
+    container_name: redis
+  
+  
+  #Django application
+
+  backend:
+    image: backend
+    build: .
+    volumes:
+      - .:/django_backend
+    ports:
+      - 8000:8000
+    container_name: django_container
+    command: python manage.py runserver 0.0.0.0:8000
+
+
+  # Celery
+  celery:
+    restart: always
+    build: 
+      context: .
+    command: celery -A backend worker -l INFO
+    volumes:
+      - .:/django_backend
+    container_name: celery
+    depends_on:
+      - redis
+      - backend
