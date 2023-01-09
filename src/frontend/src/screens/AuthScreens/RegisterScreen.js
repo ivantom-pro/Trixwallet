@@ -4,10 +4,7 @@ import {
   TextInput,
   View,
   NativeModules,
-  ScrollView,
-  Pressable,
-  TouchableOpacity,
-  TouchableHighlight,
+  ScrollView
 } from "react-native";
 
 import React from "react";
@@ -15,15 +12,23 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Formik } from "formik";
 import { COLORS } from "../../utils/constants";
-import { Button } from "react-native-paper";
 
 import CustomButton from "../../components/CustomButton";
 
 import { basicSchema } from '../../schema/UserSchema'
 
+import ApiService from '../../utils/ApiService'
+
+import { useAuthContext } from '../../context/AuthContext'
+
 const { StatusBarManager } = NativeModules;
 
+
 const RegisterScreen = ({ navigation }) => {
+
+  const { setToken, setUserInfo } = useAuthContext()
+  const [loading,setLoading] = useState(false);
+
   return (
     <SafeAreaView
       style={{
@@ -43,7 +48,22 @@ const RegisterScreen = ({ navigation }) => {
             confirm_password: "",
           }}
           validationSchema={basicSchema}
-          onSubmit={(values) => console.log(values)}
+          onSubmit={(values) => {
+            setLoading(true);
+            const { username, first_name, last_name, email, phone_number, password } = values;
+            const profile = { phone_number }
+            const user = {
+              username, first_name, last_name, email, password, profile
+            }
+            const data = JSON.stringify(user)
+            ApiService.register(data)
+              .then(res => res.json())
+              .then(data => {
+                navigation.navigate('Login')
+              })
+
+            console.log(values)
+          }}
         >
           {({
             handleChange,
@@ -82,7 +102,7 @@ const RegisterScreen = ({ navigation }) => {
                   onChangeText={handleChange("first_name")}
                   onBlur={handleBlur("first_name")}
                   value={values.first_name}
-                  secureTextEntry
+                  keyboardType="default"
                 />
                 {(errors.first_name && touched.first_name) &&
                   <Text style={{ fontSize: 10, color: 'red', paddingLeft: 8 }}>{errors.first_name}</Text>
@@ -96,6 +116,7 @@ const RegisterScreen = ({ navigation }) => {
                   style={styles.textInput}
                   onChangeText={handleChange("last_name")}
                   onBlur={handleBlur("last_name")}
+                  keyboardType="default"
                   value={values.last_name}
                 />
                 {(errors.last_name && touched.last_name) &&
@@ -111,6 +132,7 @@ const RegisterScreen = ({ navigation }) => {
                   onChangeText={handleChange("email")}
                   onBlur={handleBlur("email")}
                   value={values.email}
+                  keyboardType="email-address"
                 />
                 {(errors.email && touched.email) &&
                   <Text style={{ fontSize: 10, color: 'red', paddingLeft: 8 }}>{errors.email}</Text>
@@ -164,13 +186,14 @@ const RegisterScreen = ({ navigation }) => {
 
               <View style={styles.btnContainer}>
 
-                {/* <TouchableOpacity disabled={Boolean(!isValid || !dirty)}>
-                  <Button  mode="contained" labelStyle={{ color: "white", fontSize: 18 }} style={{ backgroundColor: (!isValid || !dirty)?'grey':COLORS.green, borderRadius: 5 }}>
-                    Sign Up
-                  </Button>
-                </TouchableOpacity> */}
+                <CustomButton 
+                  loading={loading} 
+                  onPress={handleSubmit} 
+                  disabled={Boolean(!isValid || !dirty)} 
+                  title={'Sign Up'} 
+                  style={{ color: 'white', backgroundColor: COLORS.green }} 
 
-                <CustomButton disabled={Boolean(!isValid || !dirty)} title={'Sign Up'} style={{ color: 'white', backgroundColor: COLORS.green }} />
+                />
 
 
               </View>
