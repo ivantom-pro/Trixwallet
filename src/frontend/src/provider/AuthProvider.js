@@ -1,8 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useEffect, useState,useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { AuthContext } from '../context/AuthContext'
 import React from 'react';
 import APIService from '../utils/ApiService'
+
+import { useLanguageContext } from '../context/LangContext';
 
 import WebSocket from 'ws';
 
@@ -12,6 +14,8 @@ export const AuthProvider = (props) => {
     const [token, setToken] = useState(null)
     const [isLoading, setIsLoading] = useState(true);
     const [isAgent, setIsAgent] = useState(false);
+
+    const { setLocale } = useLanguageContext()
 
     // const ws = useRef(null);
 
@@ -30,7 +34,7 @@ export const AuthProvider = (props) => {
     //         });
 
     //     }
-        
+
 
     // }, [userInfo])
 
@@ -50,7 +54,9 @@ export const AuthProvider = (props) => {
                 setUserInfo(JSON.parse(userData))
             }
         }
-        getToken().then(() => getUserData())
+        getToken().then(() => {
+            getUserData()
+        })
     }, [])
 
     useEffect(() => {
@@ -68,6 +74,7 @@ export const AuthProvider = (props) => {
         async function setUserData() {
             if (userInfo) {
                 await AsyncStorage.setItem('userInfo', JSON.stringify(userInfo))
+                setLocale(userInfo.lang.toLocaleLowerCase())
             }
         }
         setUserData(userInfo)
@@ -99,14 +106,16 @@ export const AuthProvider = (props) => {
     const logout = async () => {
         if (token) {
             await AsyncStorage.removeItem('token')
-            await APIService.logout(token)
-            setToken(null);
-            setIsLoading(false)
+            APIService.logout(token).then(res => { }).catch(err => console.log(err)).finally(() => {
+
+                setToken(null);
+                setIsLoading(false)
+            })
         }
     }
 
     return (
-        <AuthContext.Provider value={{isAgent, setIsAgent, userInfo: userInfo, setUserInfo, token, setToken, login, logout, isLoading, setIsLoading }}>{children}</AuthContext.Provider>
+        <AuthContext.Provider value={{ isAgent, setIsAgent, userInfo: userInfo, setUserInfo, token, setToken, login, logout, isLoading, setIsLoading }}>{children}</AuthContext.Provider>
     )
 
 

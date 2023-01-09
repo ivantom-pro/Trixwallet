@@ -1,14 +1,14 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 
-const ChangePinCodeScreen = () => {
+const UpdateAccountScreen = () => {
   return (
     <View>
-      <Text>Change Pin</Text>
+      <Text>Update Account</Text>
     </View>
   )
 }
 
-export default ChangePinCodeScreen
+export default UpdateAccountScreen
 
 const styles = StyleSheet.create({})

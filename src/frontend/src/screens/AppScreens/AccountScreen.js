@@ -7,7 +7,6 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
 
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
-import Ionicons from 'react-native-vector-icons/Ionicons'
 
 import { COLORS } from '../../utils/constants'
 
@@ -24,7 +23,7 @@ const AccountScreen = ({ navigation }) => {
   const [accountDetail, setAccountDetail] = useState({});
   const [isLoading, setIsLoading] = useState(true)
 
-  const { token } = useAuthContext();
+  const { token,userInfo } = useAuthContext();
   const { i18n } = useLanguageContext();
 
   const goToScreen = (transactionType) => {
@@ -42,7 +41,7 @@ const AccountScreen = ({ navigation }) => {
       .then(account => {
         // console.log(account)
         setAccountDetail(account.data);
-        AsyncStorage.setItem('isAgent',JSON.stringify({"agent":account.data.is_agent}));
+        AsyncStorage.setItem('isAgent',JSON.stringify({"agent":account.data.is_agent}))
         setIsLoading(false)
       })
       .catch(err => console.error(err))
@@ -63,7 +62,7 @@ const AccountScreen = ({ navigation }) => {
       <StatusBar style="dark" />
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={{ flex: 1, marginTop: 20 }}>
-          <Text style={{ fontSize: 20, fontWeight: '800' }}>{i18n.t('welcome')}, ivantom</Text>
+          <Text style={{ fontSize: 20, fontWeight: '800' }}>{i18n.t('welcome')}, {userInfo.user.username}</Text>
 
           <View style={styles.infoContainer}>
             <MaterialIcons name="account-balance" color={COLORS.white} size={32} />
