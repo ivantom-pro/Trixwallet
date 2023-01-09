@@ -13,11 +13,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.mixins import (
     CreateModelMixin, UpdateModelMixin, DestroyModelMixin, ListModelMixin, RetrieveModelMixin)
 from rest_framework.viewsets import (GenericViewSet)
-from rest_framework.generics import (CreateAPIView, ListAPIView)
-from rest_framework.views import APIView
+from rest_framework.generics import (CreateAPIView)
 from rest_framework.viewsets import ViewSet
 
-from django.db.models import Q, F
+from django.db.models import Q
 
 from django.conf import settings
 from core.api.utils.permisions import IsAgent
@@ -106,6 +105,7 @@ class AccountViewSet(RetrieveModelMixin, GenericViewSet, ListModelMixin, UpdateM
 
     def retrieve(self, request, *args, **kwargs):
 
+        
         pk = kwargs.get('pk')
 
         queryset = self.get_queryset().filter(user_id=pk)
@@ -296,7 +296,7 @@ class WithdrawMoneyViewSet(CreateModelMixin, ListModelMixin, GenericViewSet):
         queryset = self.get_queryset()
         serializer = self.get_serializer_class()
 
-        return Response({'success': True, 'data': serializer(queryset, many=True)})
+        return Response({'success': True, 'data': serializer(queryset, many=True).data})
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -342,7 +342,7 @@ class ConfirmWithdraw(ListModelMixin, RetrieveModelMixin, UpdateModelMixin, Gene
 
     def get_queryset(self):
         # n represents the amount of minutes for a withdrawal to be accepted or cancel after that it will be rejected
-        n = settings.WITHDRAW_MONEY_MrespresentsINUTES
+        n = settings.WITHDRAW_MONEY_MINUTES
         dt = datetime.datetime  # dt respresents the datetime.datetime function
         td = datetime.timedelta  # td represents the datetime.timedelta function
         now = dt.now()
