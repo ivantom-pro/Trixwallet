@@ -7,7 +7,7 @@ import {
   ScrollView
 } from "react-native";
 
-import React from "react";
+import React,{useState} from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Formik } from "formik";
@@ -59,7 +59,7 @@ const RegisterScreen = ({ navigation }) => {
             ApiService.register(data)
               .then(res => res.json())
               .then(data => {
-                navigation.navigate('Login')
+                navigation.navigate('Login',{message:data.message})
               })
 
             console.log(values)
@@ -197,7 +197,7 @@ const RegisterScreen = ({ navigation }) => {
 
 
               </View>
-              <Text style={{ textAlign: "center", marginBottom: 20 }}>
+              <Text style={{ textAlign: "center", marginVertical: 20,fontSize:19 }}>
                 Already a user ?{" "}
                 <Text
                   style={{ color: "blue" }}
