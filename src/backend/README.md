@@ -40,7 +40,7 @@
 - Open a terminal and navigate to the project root directory
 - Run the command
     ```
-    python manage.py test
+    pytest
     ```
 
 
