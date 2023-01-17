@@ -43,6 +43,17 @@
     pytest
     ```
 
+# Run in docker
+- Make sure how have install docker-compose on your local machine
+- Run in terminal
+  ```
+  docker-compose up
+  ```
+  then
+  ```
+  docker-compose start
+  ```
+  and open the url `http://localhost:8001` in browser
 
 ## Commands
 
