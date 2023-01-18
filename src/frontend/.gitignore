@@ -10,6 +10,7 @@ npm-debug.*
 *.mobileprovision
 *.orig.*
 web-build/
+src/utils/EndUrl.js
 
 # macOS
 .DS_Store

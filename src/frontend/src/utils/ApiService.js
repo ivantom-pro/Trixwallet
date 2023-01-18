@@ -1,7 +1,14 @@
 // import axios from 'axios'
 
+// to import endPoint create a js file inside the utils folder named EndUrl.js
+// then paste the text below :
+// export const endPoint = `http://{ip}:8000`;
+// NB: replace {ip} with your actual ip address
+
+import { endPoint } from "./EndUrl";
+
 export default class Trixwallet {
-  static endPoint = 'http://192.168.8.101:8000'
+  static endPoint = endPoint; 
   static webSocketUrl = 'ws://127.0.0.1:8000';
 
   static async getLatestTransactions(token){
