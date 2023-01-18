@@ -3,6 +3,8 @@ from django.db.models.signals import post_save, pre_save
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import get_user_model
 
+import binascii,os
+
 from django.db import transaction
 
 from .models import Account, Transfer, Withdraw, TransactionType, Deposit
@@ -36,27 +38,29 @@ def createAccount(sender, instance, created, **kwargs):
 
     if created:
         # it means when the user is created
-
+        # if not Profile.objects.filter(user=instance):
+        #     profile = Profile.objects.create(
+        #         user=instance, dob=timezone.now().date())
         if not Account.objects.select_related('user').filter(user=instance).exists():
-            Account.objects.create(user=instance)
+            account = Account.objects.create(user=instance,account_number=0000000)
+            account.account_number = 1000000 + account.id
+            account.save()
         if not Token.objects.filter(user=instance).exists():
             Token.objects.create(user=instance)
-        if not Profile.objects.filter(user=instance):
-            profile = Profile.objects.create(
-                user=instance, dob=timezone.now().date())
-        else:
-            profile = Profile.objects.select_related(
-                'profile').get(user=instance)
 
-        lang = profile.lang
-        msg = ''
+        # else:
+        #     profile = Profile.objects.select_related(
+        #         'profile').get(user=instance)
 
-        if lang == 'FR':
-            msg = f'Bienvenu sur {settings.APP_NAME}\nVotre code pin est [00000] et solde de votre compte est {profile.user.account.currency} {profile.user.account.balance}'
-        elif lang == 'EN':
-            msg = f'Welcome To {settings.APP_NAME} \nYour pin code is [00000] and account balance is {profile.user.account.currency} {profile.user.account.balance}'
+        # lang = profile.lang
+        # msg = ''
 
-        Notification.objects.create(user=profile.user, message=msg)
+        # if lang == 'FR':
+        #     msg = f'Bienvenu sur {settings.APP_NAME}\nVotre code pin est [00000] et solde de votre compte est {profile.user.account.currency} {profile.user.account.balance}'
+        # elif lang == 'EN':
+        #     msg = f'Welcome To {settings.APP_NAME} \nYour pin code is [00000] and account balance is {profile.user.account.currency} {profile.user.account.balance}'
+
+        # Notification.objects.create(user=profile.user, message=msg)
 
 
 @receiver(pre_save, sender=Profile)
@@ -77,22 +81,21 @@ def passThroughProfile(sender, instance, *args, **kwargs):
 
                 Notification.objects.create(user=instance.user, message=msg)
 
-
-@receiver(post_save, sender=Account)
-def createAccountNumber(sender, instance, created, **kwargs):
+@receiver(post_save,sender=Account)
+def createProfileIfNotExists(sender,instance,created,**kwargs):
 
     if created:
 
-        instance.account_number = 1000000 + instance.id
-        instance.save()
-
+        profile = Profile.objects.filter(user=instance.user)
+        if not profile.exists():
+            Profile.objects.create(user=instance.user)      
 
 @receiver(pre_save, sender=Account)
 def checkAccount(sender, instance, **kwargs):
 
     # If Instance/row is been created,then do nothing
     if instance.id is None:
-        pass
+        pass        
 
     # Else if it is being modified
 
@@ -124,6 +127,7 @@ def checkAccount(sender, instance, **kwargs):
 
             Notification.objects.create(user=instance.user, message=msg)
 
+###########################################DEPOSIT SIGNALS###################################################
 
 @receiver(pre_save, sender=Deposit)
 def checkIfUserCanDepositMoney(sender, instance: Account, **kwargs):
@@ -170,6 +174,11 @@ def checkIfUserCanDepositMoney(sender, instance: Account, **kwargs):
 
                     reciever_account.balance = reciever_account.balance + amount_send
                     reciever_account.save()
+                    
+                    instance.sender = sender_account
+                    instance.reciever = reciever_account
+
+
                     instance.status = state.DEPOSIT_SUCCESSFULL
 
             else:
@@ -178,6 +187,7 @@ def checkIfUserCanDepositMoney(sender, instance: Account, **kwargs):
                 Notification.objects.create(user=sender_account.user, message="Your account balance is insufficent to perform the transaction. Please fill you account and retry later!\nCurrent account balance {}".format(
                     sender_account.get_balance()), type=notification_status.NOTIFCATION_WITHDRAW_REJECTED)
 
+####################################TRANSFER SIGNALS##############################################################
 
 @receiver(pre_save, sender=Transfer)
 def checkIfUserCanTransferMoney(sender, instance, **kwargs):
@@ -225,6 +235,9 @@ def checkIfUserCanTransferMoney(sender, instance, **kwargs):
                     reciever_account.balance = reciever_account.balance + amount_send
                     reciever_account.save()
 
+                    instance.sender = sender_account
+                    instance.reciever = reciever_account
+
                     instance.status = state.TRANSFER_SUCCESSFULL
 
             else:
@@ -253,10 +266,11 @@ def sendNotificationsToAccounst(sender, instance, created, **kwargs):
         instance.save()
 
 
+##################################WITHDRAW SIGNALS#############################################
+
 @receiver(pre_save, sender=Withdraw)
 def accept_or_deny(sender, instance, **kwargs):
 
-    print(kwargs)
     """_summary_
 
     Args:
@@ -318,8 +332,12 @@ def accept_or_deny(sender, instance, **kwargs):
                     withdraw_from.balance = float(balance) - amount_to_withdraw
                     withdraw_from.save()
 
+
                     agent.balance = float(agent.balance) + amount_to_withdraw
                     agent.save()
+
+                    instance.withdraw_from = withdraw_from
+                    instance.agent = agent
 
                     instance.charge = charge
 
